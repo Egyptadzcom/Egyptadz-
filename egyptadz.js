@@ -32,9 +32,16 @@
     trackUrl: '',
 
     // platform: 'blogger' | 'wordpress' | 'auto'
+    // true = يكتب في Console (F12) سبب نجاح أو فشل كل متجر، ويتجاهل الكاش
+    debug: true,
+
     members: [
       { name: 'متجر التجميل', url: 'https://data.egyptadz.com', platform: 'auto' },
-      { name: 'متجر الملابس', url: 'https://egypt-adz.kesug.com', platform: 'auto' }
+      { name: 'متجر الملابس', url: 'https://egypt-adz.kesug.com', platform: 'auto' },
+
+      // ===== مواقع تجريبية عامة للاختبار فقط — امسحها قبل الإطلاق الحقيقي =====
+      { name: 'تجريبي Blogger', url: 'https://buzz.blogger.com', platform: 'blogger' },
+      { name: 'تجريبي WordPress', url: 'https://wordpress.org/news', platform: 'wordpress' }
       // { name: 'اسم المتجر', url: 'https://example.com', platform: 'blogger' },
     ]
   };
@@ -94,6 +101,13 @@
     u.searchParams.set('utm_medium', CONFIG.utmMedium);
     u.searchParams.set('utm_campaign', selfHost);
     return u.toString();
+  }
+
+  function dbg() {
+    if (!CONFIG.debug || !window.console) return;
+    var a = Array.prototype.slice.call(arguments);
+    a.unshift('[EAZ]');
+    console.log.apply(console, a);
   }
 
   function pick(arr) {
@@ -188,8 +202,12 @@
       item.member = member.name || host;
       item.host = host;
       if (item.image && !isSafeImage(item.image)) item.image = '';
+      dbg('OK   ', host, item.title);
       return item;
-    }).catch(function () { return null; }); // متجر واقع؟ نتخطاه بدون ما نكسر الصفحة
+    }).catch(function (err) {
+      dbg('FAIL ', host, (err && err.message) || err);
+      return null; // متجر واقع؟ نتخطاه بدون ما نكسر الصفحة
+    });
   }
 
   /* ---------- التخزين المؤقت ---------- */
@@ -208,10 +226,11 @@
   }
 
   function loadItems() {
-    var cached = readCache();
+    var cached = CONFIG.debug ? null : readCache();
     if (cached && cached.length) return Promise.resolve(cached);
     return Promise.all(CONFIG.members.map(fetchMember)).then(function (list) {
       var items = list.filter(Boolean);
+      dbg('self host =', selfHost, '| loaded', items.length, 'of', CONFIG.members.length);
       if (items.length) writeCache(items);
       return items;
     });
