@@ -10,7 +10,6 @@
   if (window.__eazExchangeLoaded) return;
   window.__eazExchangeLoaded = true;
 
-  /* ===================== CONFIG ===================== */
   var CONFIG = {
     title: 'من متاجر شركائنا',
     joinText: 'انضم لشبكة التبادل',
@@ -26,7 +25,6 @@
     debug: false,
 
     members: [
-      // BLOGGER - عربي
       {
         name: 'مدونة ايجي سون',
         url: 'https://ranieen.blogspot.com',
@@ -37,8 +35,6 @@
         url: 'https://hadialsadi.blogspot.com',
         platform: 'blogger'
       },
-
-      // BLOGGER - English
       {
         name: 'Forever Overcast',
         url: 'https://foreverovercast.blogspot.com',
@@ -49,8 +45,6 @@
         url: 'https://rosenglish.blogspot.com',
         platform: 'blogger'
       },
-
-      // WORDPRESS - عربي
       {
         name: 'النخبة العربية',
         url: 'https://arabnokhba.com',
@@ -61,8 +55,6 @@
         url: 'https://mhralaradi.wordpress.com',
         platform: 'wordpress'
       },
-
-      // WORDPRESS - English
       {
         name: 'WordPress Developer',
         url: 'https://developer.wordpress.org/news',
@@ -70,7 +62,6 @@
       }
     ]
   };
-  /* ================================================== */
 
   var PREFIX = 'eaz-';
   var selfHost = cleanHost(location.hostname);
@@ -109,7 +100,6 @@
 
   function isThisMonth(dateValue) {
     if (!dateValue) return false;
-
     var d = new Date(dateValue);
     var now = new Date();
 
@@ -160,7 +150,6 @@
 
   function dbg() {
     if (!CONFIG.debug || !window.console) return;
-
     var a = Array.prototype.slice.call(arguments);
     a.unshift('[EAZ]');
     console.log.apply(console, a);
@@ -169,8 +158,6 @@
   function pick(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   }
-
-  /* ---------- Blogger JSONP ---------- */
 
   function jsonp(url, timeout) {
     return new Promise(function (resolve, reject) {
@@ -184,16 +171,12 @@
 
       function cleanup() {
         clearTimeout(timer);
-
         try {
           delete window[cb];
         } catch (e) {
           window[cb] = undefined;
         }
-
-        if (s.parentNode) {
-          s.parentNode.removeChild(s);
-        }
+        if (s.parentNode) s.parentNode.removeChild(s);
       }
 
       window[cb] = function (data) {
@@ -213,8 +196,6 @@
       document.head.appendChild(s);
     });
   }
-
-  /* ---------- Fetch Blogger ---------- */
 
   function fromBlogger(member, host) {
     var feed = member.url.replace(/\/+$/, '') +
@@ -248,7 +229,6 @@
           image: img,
           published: e.published && e.published.$t
         };
-
       }).filter(function (x) {
         return x.title &&
           isSafeLink(x.link, host) &&
@@ -256,12 +236,9 @@
       });
 
       if (!ok.length) throw new Error('no current month entries');
-
       return pick(ok);
     });
   }
-
-  /* ---------- Fetch WordPress ---------- */
 
   function fromWordPress(member, host) {
     var api = member.url.replace(/\/+$/, '') +
@@ -276,7 +253,6 @@
       return r.json();
     })
     .then(function (posts) {
-
       var ok = (posts || []).map(function (p) {
         var img = '';
 
@@ -290,7 +266,6 @@
           image: img,
           published: p.date
         };
-
       }).filter(function (x) {
         return x.title &&
           isSafeLink(x.link, host) &&
@@ -298,19 +273,15 @@
       });
 
       if (!ok.length) throw new Error('no current month posts');
-
       return pick(ok);
     });
   }
-
-  /* ---------- Fetch Member ---------- */
 
   function fetchMember(member) {
     var u = parseUrl(member.url);
     if (!u) return Promise.resolve(null);
 
     var host = cleanHost(u.hostname);
-
     if (host === selfHost) return Promise.resolve(null);
 
     var p = (member.platform || 'auto').toLowerCase();
@@ -335,16 +306,12 @@
       }
 
       dbg('OK', host, item.title);
-
       return item;
-
     }).catch(function (err) {
       dbg('FAIL', host, (err && err.message) || err);
       return null;
     });
   }
-
-  /* ---------- Cache ---------- */
 
   function readCache() {
     try {
@@ -391,12 +358,9 @@
           'of', CONFIG.members.length);
 
         if (items.length) writeCache(items);
-
         return items;
       });
   }
-
-  /* ---------- Tracking ---------- */
 
   var seen = {};
 
@@ -412,8 +376,6 @@
       new Image().src = CONFIG.trackUrl + q;
     } catch (e) {}
   }
-
-  /* ---------- Styles ---------- */
 
   function injectStyles() {
     if (document.getElementById(PREFIX + 'style')) return;
@@ -445,30 +407,23 @@
     document.head.appendChild(st);
   }
 
-  /* ---------- Elements ---------- */
-
   function el(tag, cls, text) {
     var n = document.createElement(tag);
-
     if (cls) n.className = cls;
     if (text != null) n.textContent = text;
-
     return n;
   }
 
-  /* ---------- Render ---------- */
-
   function render(container, items) {
     items = shuffle(items.slice()).slice(0, CONFIG.maxItems);
-
     if (!items.length) return;
 
     injectStyles();
     container.innerHTML = '';
 
     var rtl = CONFIG.dir === 'rtl';
-
     var wrap = el('div', 'eaz-wrap');
+
     wrap.setAttribute('dir', CONFIG.dir);
     wrap.setAttribute('role', 'region');
     wrap.setAttribute('aria-label', CONFIG.title);
@@ -477,18 +432,15 @@
     head.appendChild(el('h3', 'eaz-title', CONFIG.title));
 
     var nav = el('div', 'eaz-nav');
-
     var prev = el('button', 'eaz-btn', rtl ? '›' : '‹');
     var next = el('button', 'eaz-btn', rtl ? '‹' : '›');
 
     prev.type = next.type = 'button';
-
     prev.setAttribute('aria-label', 'السابق');
     next.setAttribute('aria-label', 'التالي');
 
     nav.appendChild(prev);
     nav.appendChild(next);
-
     head.appendChild(nav);
     wrap.appendChild(head);
 
@@ -512,7 +464,6 @@
 
         img.onerror = function () {
           var ph = el('div', 'eaz-ph', '🛍️');
-
           if (img.parentNode) {
             img.parentNode.replaceChild(ph, img);
           }
@@ -524,10 +475,8 @@
       }
 
       var body = el('div', 'eaz-body');
-
       body.appendChild(el('span', 'eaz-badge', item.member));
       body.appendChild(el('span', 'eaz-name', item.title));
-
       a.appendChild(body);
 
       a.addEventListener('click', function () {
@@ -535,7 +484,6 @@
       });
 
       a._eazItem = item;
-
       track_observe(a);
       track.appendChild(a);
     });
@@ -551,13 +499,10 @@
 
     foot.appendChild(j);
     wrap.appendChild(foot);
-
     container.appendChild(wrap);
 
     setupControls(track, prev, next, rtl);
   }
-
-  /* ---------- View Tracking ---------- */
 
   var io = null;
 
@@ -585,14 +530,11 @@
     io.observe(card);
   }
 
-  /* ---------- Controls ---------- */
-
   function setupControls(track, prev, next, rtl) {
     var dir = rtl ? -1 : 1;
 
     function step() {
       var card = track.querySelector('.eaz-card');
-
       return card ?
         card.getBoundingClientRect().width + 12 : 220;
     }
@@ -634,7 +576,6 @@
 
     function start() {
       stop();
-
       timer = setInterval(function () {
         go(1);
       }, CONFIG.autoplayMs);
@@ -662,11 +603,8 @@
     start();
   }
 
-  /* ---------- Initialization ---------- */
-
   function getContainer() {
     var c = document.getElementById('eaz-exchange');
-
     if (c) return c;
 
     c = document.createElement('div');
@@ -689,7 +627,6 @@
 
     function run() {
       if (started) return;
-
       started = true;
 
       loadItems().then(function (items) {
